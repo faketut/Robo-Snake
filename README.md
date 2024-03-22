@@ -1,4 +1,4 @@
-# Snake AI Project
+# Robo-Snake
 
 ## Overview
 
