@@ -1,36 +1,105 @@
-# Robo-Snake
+# SnakeBot
 
-## Overview
+An autonomous Snake game implemented in Python using the Pygame library. This game features an AI-controlled snake that navigates the board, seeks out food, and attempts to avoid getting trapped, making decisions based on shortest path to food and safe paths to its tail.
 
-The Snake AI project involves the implementation of various strategies utilizing the Breadth-First Search (BFS) algorithm to guide the snake in a game scenario to locate food, avoid collisions, and maximize safety.
+![](./Animation.gif)
 
-### BFS Algorithm
-- **Functionality:** Searches nodes around the initial state (starting point) until reaching the target node (food).
-- **Traversal:** Explores adjacent points around the snake's head, avoiding obstacles (snake body and walls) and minimizing revisits for efficiency.
+## Table of Contents
 
-### Rear End Collision & Virtual Snake Exploration
-- **Safety Considerations:** Defines safety based on the ability for the snake head to follow the snake tail during movements.
-- **Strategy:** Allows the snake to follow its tail when unable to find a path to food; utilizes virtual snake simulations to determine safety before actual food consumption.
+  - [About the Game](https://www.google.com/search?q=%23about-the-game)
+  - [Features](https://www.google.com/search?q=%23features)
+  - [How to Run](https://www.google.com/search?q=%23how-to-run)
+  - [Game Logic & AI](https://www.google.com/search?q=%23game-logic--ai)
+  - [Project Structure](https://www.google.com/search?q=%23project-structure)
+  - [Dependencies](https://www.google.com/search?q=%23dependencies)
+  - [License](https://www.google.com/search?q=%23license)
 
-### Prioritizing Avoidance of Food Conflicts
-- **Optimization:** Seeks a safe path from snake head to tail without leaving gaps, enhancing the snake's ability to find food.
-- **Selection Criteria:** Prioritizes selecting the farthest grid from food while ensuring a clear path back to the snake's tail during movement.
+## About the Game
 
-## References
+"SnakeBot" is a classic Snake game where the snake's movement is entirely controlled by an artificial intelligence algorithm. Instead of player input, the snake autonomously finds its way across the grid, aiming to eat food to grow longer, while strategizing to avoid collisions with its own body or the game boundaries. The game board is a 15x15 grid, and the snake grows with each food consumed.
 
-The project draws inspiration from the Snake AI strategy detailed in [Hawstein's Snake AI post from 2013](http://www.hawstein.com/posts/snake-ai.html).
+## Features
 
-## Details
-Firstly, place the coordinates of the food in the queue. As long as the queue is not empty, pop the head off the queue. Then, place the four points around the snake's head in the queue and repeat the operation until it covers the entire board. During the traversal process, it should be noted that: 1. The snake's body and walls cannot be accessed. In order to improve efficiency, if there are overlapping grids that have been accessed, they do not need to be accessed again. After the entire cycle ends, we obtain the shortest path between the snake head and the food.
+  * **Autonomous AI Snake:** The snake makes its own decisions without human intervention.
+  * **Pathfinding Algorithm:** Utilizes a Breadth-First Search (BFS) based approach to evaluate possible moves and find paths.
+  * **Smart Movement:**
+      * Prioritizes the shortest path to food when it leads to a safe state (i.e., the snake can still reach its tail afterwards).
+      * If a direct path to food isn't safe, it attempts to follow its tail to maintain open space and avoid being cornered.
+      * Includes a fallback mechanism to take any possible safe move if other strategies fail.
+  * **Simple Pygame Graphics:** Basic visual representation of the snake, food, and game board.
+  * **Score Tracking:** Keeps track of the score based on eaten food.
 
-- **Rear end collision+virtual snake exploration:**
-  
-Firstly, we should define "security". What is a security state? We found that when the snake head moves one grid, it corresponds to the position of the snake tail moving out of one grid. Therefore, as long as the snake head can follow the snake tail, it is considered safe. Therefore, when the small snake eats its food, it can check that there is a pathway between the snake head and the snake tail, which is considered safe
-Based on the above conclusion, we can let the small snake follow its tail when it cannot find a path to eat. When a small snake can eat food, first create a virtual snake simulation and use the BFS algorithm to eat the food along the shortest path. When the virtual snake can find the path between the snake head and the snake tail after eating the food, it is safe to eat. Then, we send the real small snake to eat the food. On the contrary, when the virtual snake finds that it cannot find the path connecting its tail after eating food, it is unsafe to eat it. We let the real snake follow the snake's tail for a step. Until the virtual snake finds a safe state, let the real little snake move.
+## How to Run
 
-- **Prioritize staying away from food conflicts:**
-  
-We also can find that it's difficult for the snake to find a safe path to eat food from the snake's head to the snake's tail, without creating many gaps. Therefore, when asking a real snake to find its tail, two things need to be met:
-1. Find an empty space around the snake head, and once the snake head reaches this space, it can still find a path connecting to the tail
-2. If conditions 1 is met, prioritize selecting the grid farthest from the food (Calculate the Manhattan distance between two points)
+To run the SnakeBot game on your local machine, follow these steps:
 
+### Prerequisites
+
+  * Python 3.x installed on your system.
+
+### Installation
+
+1.  **Install Pygame:** If you don't have Pygame installed, open your terminal or command prompt and run:
+    ```bash
+    pip install pygame
+    ```
+
+### Execution
+
+1.  Save the provided Python code as a `.py` file (e.g., `robo_snake.py`).
+2.  Navigate to the directory where you saved the file using your terminal or command prompt.
+3.  Run the game using the Python interpreter:
+    ```bash
+    python robo_snake.py
+    ```
+4.  To exit the game, close the window or press the `ESC` key.
+
+## Game Logic & AI
+
+The core of the SnakeBot game lies in its intelligent movement algorithm, primarily managed by the `get_best_move` method and its helpers.
+
+1.  **Board State Evaluation (`board_reset`, `board_refresh`):**
+
+      * The game board is represented as a 1D array (`board`).
+      * `board_reset` initializes the board, marking snake body parts as `SNAKE` and empty cells as `UNDEFINED`. The food location is marked as `FOOD`.
+      * `board_refresh` performs a BFS from the `food` position to calculate the shortest distance from every reachable empty cell to the food. This creates a "distance map" on the board.
+
+2.  **Move Selection Strategy:**
+
+      * **Shortest Path to Food (`choose_shortest_safe_move`):** The primary goal is to find the move that leads to a cell with the minimum distance to the food (as calculated by `board_refresh`).
+      * **Avoiding Traps (`find_safe_ways`, `is_tail_inside`, `virtual_shortest_move`):**
+          * Before committing to the shortest path, the AI virtually simulates eating the food (`virtual_shortest_move`).
+          * It then checks if, after this virtual consumption, the snake's head can still reach its tail (`is_tail_inside`). This is crucial to prevent the snake from trapping itself after eating food and growing.
+      * **Following the Tail (`follow_tail`):** If the shortest path to food leads to a trap, the snake switches strategies. It tries to find the longest safe path towards its tail. This helps the snake fill empty spaces and move towards larger open areas, preventing it from getting stuck in small loops.
+      * **Any Possible Move (`any_possible_move`):** As a last resort, if all other strategies fail (e.g., no safe path to food, cannot reach tail), the snake will simply take any move that doesn't immediately lead to a collision. This prevents the game from freezing.
+
+## Project Structure
+
+  * `Colors` class: Defines `pygame.Color` objects for various game elements.
+  * `GameConstants` class: Holds constants for game dimensions, cell values, movement directions, and window size.
+  * `SnakeGame` class:
+      * `__init__`: Initializes Pygame, sets up the game window, and defines initial game state (snake position, food, score).
+      * `_initialize_display`, `_draw_food`, `_draw_snake_part`: Handle rendering aspects.
+      * `is_cell_free`, `is_move_possible`: Utility methods for checking valid game states and moves.
+      * `board_reset`, `board_refresh`: Core methods for updating and evaluating the game board state (BFS).
+      * `choose_shortest_safe_move`, `choose_longest_safe_move`: AI decision-making based on board distances.
+      * `is_tail_inside`, `follow_tail`, `virtual_shortest_move`, `find_safe_ways`: Advanced AI logic for avoiding traps and following the tail.
+      * `any_possible_move`: Fallback AI movement.
+      * `shift_array`, `new_food`, `make_move`: Game mechanics for snake movement, food generation, and state updates.
+      * `get_best_move`: Orchestrates the AI decision-making process.
+      * `handle_events`: Handles Pygame events (quitting the game).
+      * `run`: The main game loop.
+  * `main()` function: Entry point for the application.
+
+## Dependencies
+
+  * `pygame`
+  * `sys`
+  * `time`
+  * `random`
+
+These are standard Python libraries and Pygame, which you'll need to install.
+
+## License
+
+This project is open-source and available under the MIT License.
